@@ -1,0 +1,168 @@
+-- 1) 견적 패키지 마스터: 상조회사(본점 ID 기준)가 고객에게 제안할 패키지(일반/프리미엄/VIP 등) 기본 정의
+CREATE TABLE IF NOT EXISTS tb_estimate_package (
+    estimate_package_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 견적 패키지 ID',
+    company_id          VARCHAR(36) NOT NULL COMMENT '본점 ID (TB_FUNERAL_COMPANY.PARENT_COMPANY_ID와 동일 타입)',
+    package_name        VARCHAR(100) NOT NULL COMMENT '패키지명 (예: 일반형, 특급형, VIP형)',
+    package_type        VARCHAR(20)  NOT NULL COMMENT '패키지 유형 코드(STANDARD/PREMIUM/VIP 등) - 회사 내 고유',
+    package_description TEXT COMMENT '패키지 설명(제공 서비스 개요, 포함/미포함 사항 등)',
+    total_base_price    DECIMAL(15,2) COMMENT '패키지 기본 총액(옵션/할증 전)',
+    is_active           TINYINT(1) DEFAULT 1 COMMENT '사용 여부(1:노출, 0:비노출)',
+    display_order       INT DEFAULT 0 COMMENT 'UI 노출 순서(낮을수록 먼저 노출)',
+    created_by          VARCHAR(50) COMMENT '등록자 ID',
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_by          VARCHAR(50) COMMENT '수정자 ID',
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    UNIQUE KEY uk_company_package (company_id, package_type) COMMENT '회사별 패키지 유형 중복 방지',
+    INDEX idx_estpkg_company_active (company_id, is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='견적 패키지 기본 정의(회사별 표준/프리미엄/VIP 등)';
+
+-- 2) 견적 항목 카테고리: 비용 대분류(필수/선택), 공통 코드로 회사 구분 없음
+CREATE TABLE IF NOT EXISTS tb_estimate_category (
+    category_id    BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 카테고리 ID',
+    category_name  VARCHAR(100) NOT NULL COMMENT '카테고리명(예: 의전, 장례식장, 꽃 장식)',
+    category_code  VARCHAR(50)  NOT NULL UNIQUE COMMENT '카테고리 코드(전사 공통 유니크)',
+    is_required    TINYINT(1) DEFAULT 1 COMMENT '필수 여부(1:필수, 0:선택)',
+    display_order  INT DEFAULT 0 COMMENT 'UI 노출 순서',
+    description    TEXT COMMENT '카테고리 설명/가이드',
+    is_active      TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='견적 항목 대분류(필수/선택) 공통 코드';
+
+-- 3) 견적 세부 항목 마스터: 회사별 개별 항목 정의(단가, 단위, 기본수량 등)
+CREATE TABLE IF NOT EXISTS tb_estimate_item (
+    item_id           BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 항목 ID',
+    company_id        VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    category_id       BIGINT NOT NULL COMMENT '카테고리 ID(tb_estimate_category)',
+    item_name         VARCHAR(200) NOT NULL COMMENT '항목명',
+    item_code         VARCHAR(50)  NOT NULL COMMENT '회사 내 항목 코드(고유)',
+    item_description  TEXT COMMENT '항목 상세 설명(구성, 포함 범위 등)',
+    unit              VARCHAR(20) COMMENT '단위(식, 개, 대, 명 등)',
+    is_quantifiable   TINYINT(1) DEFAULT 1 COMMENT '수량 입력 가능 여부',
+    default_quantity  INT DEFAULT 1 COMMENT '기본 수량',
+    display_order     INT DEFAULT 0 COMMENT '노출 순서',
+    is_active         TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    created_at        DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    UNIQUE KEY uk_company_item (company_id, item_code) COMMENT '회사별 항목코드 중복 방지',
+    INDEX idx_item_company_cat (company_id, category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='회사별 견적 개별 항목 정의(단위/기본수량/설명)';
+
+-- 4) 패키지별 항목 구성/가격: 특정 패키지에 어떤 항목을 얼마에 포함/추가할지 정의
+CREATE TABLE IF NOT EXISTS tb_package_item_price (
+    package_item_id        BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 패키지-항목 매핑 ID',
+    company_id             VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    estimate_package_id    BIGINT NOT NULL COMMENT '패키지 ID(tb_estimate_package)',
+    item_id                BIGINT NOT NULL COMMENT '항목 ID(tb_estimate_item)',
+    included_quantity      INT DEFAULT 0 COMMENT '포함 수량(0이면 미포함)',
+    unit_price             DECIMAL(15,2) NOT NULL COMMENT '기본 단가',
+    additional_unit_price  DECIMAL(15,2) COMMENT '초과 수량 시 단가',
+    min_quantity           INT DEFAULT 0 COMMENT '최소 수량',
+    max_quantity           INT COMMENT '최대 수량',
+    is_included_in_package TINYINT(1) DEFAULT 1 COMMENT '패키지 기본 포함 여부(1:포함,0:미포함)',
+    discount_rate          DECIMAL(5,2) DEFAULT 0.00 COMMENT '할인율(%)',
+    notes                  TEXT COMMENT '비고/특이사항',
+    is_active              TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    effective_start_date   DATE COMMENT '가격 적용 시작일',
+    effective_end_date     DATE COMMENT '가격 적용 종료일',
+    created_at             DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at             DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    UNIQUE KEY uk_company_package_item (company_id, estimate_package_id, item_id) COMMENT '회사+패키지+항목 중복 방지',
+    INDEX idx_company_package (company_id, estimate_package_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='패키지별 포함 항목 및 단가(포함/추가/할인/적용기간) 정의';
+
+-- 5) 패키지 옵션 그룹: 패키지 내 선택 그룹(관 선택, 수의 등급 등) 정의
+CREATE TABLE IF NOT EXISTS tb_package_option_group (
+    option_group_id      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 옵션 그룹 ID',
+    company_id           VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    estimate_package_id  BIGINT NOT NULL COMMENT '패키지 ID',
+    category_id          BIGINT NOT NULL COMMENT '카테고리 ID',
+    group_name           VARCHAR(100) NOT NULL COMMENT '그룹명(예: 관 선택, 수의 등급)',
+    selection_type       VARCHAR(20) DEFAULT 'SINGLE' COMMENT '선택 타입(SINGLE/ MULTIPLE)',
+    is_required          TINYINT(1) DEFAULT 1 COMMENT '필수 선택 여부',
+    display_order        INT DEFAULT 0 COMMENT '노출 순서',
+    created_at           DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at           DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    UNIQUE KEY uk_company_package_group (company_id, estimate_package_id, group_name) COMMENT '회사+패키지+그룹명 중복 방지',
+    INDEX idx_company_package_cat (company_id, estimate_package_id, category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='패키지 내 옵션 선택 그룹 정의(필수/선택, 단일/복수)';
+
+-- 6) 견적서 히스토리: 발송된 견적서 버전/상태 이력 보관
+CREATE TABLE IF NOT EXISTS tb_estimate_history (
+    estimate_history_id   BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 이력 ID',
+    company_id            VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    estimate_package_id   BIGINT NOT NULL COMMENT '사용한 패키지 ID',
+    customer_name         VARCHAR(100) COMMENT '고객명(상주)',
+    customer_contact      VARCHAR(20) COMMENT '연락처',
+    customer_email        VARCHAR(100) COMMENT '이메일',
+    deceased_name         VARCHAR(100) COMMENT '고인명',
+    funeral_date          DATE COMMENT '장례 예정일',
+    estimate_total_amount DECIMAL(15,2) COMMENT '견적 총액',
+    estimate_items_json   JSON COMMENT '견적 항목 상세(스냅샷 JSON)',
+    sent_by               VARCHAR(50) COMMENT '발송자 ID',
+    sent_at               DATETIME COMMENT '발송 일시',
+    status                VARCHAR(20) DEFAULT 'SENT' COMMENT '상태(SENT/CONFIRMED/REJECTED 등)',
+    notes                 TEXT COMMENT '메모/비고',
+    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    INDEX idx_company_status (company_id, status),
+    INDEX idx_company_date   (company_id, sent_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='발송된 견적서의 버전/상태 이력(총액, 항목 스냅샷 포함)';
+
+-- 7) 지역별 가격 차등: 지역 코드별 항목 단가 조정(퍼센트/고정)
+CREATE TABLE IF NOT EXISTS tb_regional_price_adjustment (
+    adjustment_id    BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 지역 조정 ID',
+    company_id       VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    item_id          BIGINT NOT NULL COMMENT '항목 ID(tb_estimate_item)',
+    region_code      VARCHAR(20) NOT NULL COMMENT '지역 코드(행정/내부 코드)',
+    region_name      VARCHAR(100) COMMENT '지역명',
+    adjustment_type  VARCHAR(20) COMMENT '조정 타입(PERCENTAGE:%, FIXED:금액)',
+    adjustment_value DECIMAL(15,2) COMMENT '조정 값(%) 또는 금액',
+    is_active        TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    UNIQUE KEY uk_company_item_region (company_id, item_id, region_code) COMMENT '회사+항목+지역 중복 방지',
+    INDEX idx_company_region (company_id, region_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='지역 코드별 항목 단가 조정(퍼센트/고정)';
+
+-- 8) 시즌/시간대별 할증: 명절/주말 등 기간·시간대 할증율 관리
+CREATE TABLE IF NOT EXISTS tb_seasonal_surcharge (
+    surcharge_id       BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'PK: 할증 ID',
+    company_id         VARCHAR(36) NOT NULL COMMENT '본점 ID',
+    surcharge_name     VARCHAR(100) NOT NULL COMMENT '할증명(명절, 주말 등)',
+    apply_start_date   DATE COMMENT '적용 시작일',
+    apply_end_date     DATE COMMENT '적용 종료일',
+    surcharge_rate     DECIMAL(5,2) COMMENT '할증율(%)',
+    target_category_id BIGINT COMMENT '대상 카테고리(NULL이면 전체)',
+    is_active          TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    created_at         DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+    updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    INDEX idx_company_dates  (company_id, apply_start_date, apply_end_date),
+    INDEX idx_company_active (company_id, is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='기간/시간대별 할증 관리(명절/주말 등 할증율)';
+
+
+
+
+
+DROP TABLE IF EXISTS tb_package_item_price;
+
+-- 5) 패키지 옵션 그룹
+DROP TABLE IF EXISTS tb_package_option_group;
+
+-- 7) 지역별 가격 차등
+DROP TABLE IF EXISTS tb_regional_price_adjustment;
+
+-- 8) 시즌/시간대별 할증
+DROP TABLE IF EXISTS tb_seasonal_surcharge;
+
+-- 6) 견적서 히스토리
+DROP TABLE IF EXISTS tb_estimate_history;
+
+-- 3) 견적 세부 항목 마스터
+DROP TABLE IF EXISTS tb_estimate_item;
+
+-- 2) 견적 항목 카테고리
+DROP TABLE IF EXISTS tb_estimate_category;
+
+-- 1) 견적 패키지 마스터
+DROP TABLE IF EXISTS tb_estimate_package;

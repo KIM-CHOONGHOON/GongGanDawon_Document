@@ -1,0 +1,636 @@
+테이블 구조 설계
+1. 대분류 테이블 (funeral_major_categories)
+sqlCREATE TABLE funeral_major_categories (
+    major_category_code VARCHAR(2) PRIMARY KEY COMMENT '대분류 코드',
+    major_category_name VARCHAR(50) NOT NULL COMMENT '대분류 명칭',
+    display_order INT NOT NULL COMMENT '표시 순서',
+    description TEXT COMMENT '설명',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT='장례용품 대분류';
+
+-- 기본 데이터
+INSERT INTO funeral_major_categories (major_category_code, major_category_name, display_order, description) VALUES
+('01', '빈소', 1, '조문객 접대 및 고인 안치 공간'),
+('02', '안치실', 2, '고인 안치 시설'),
+('03', '염습실', 3, '염습 및 수의 착의'),
+('04', '영결식장', 4, '영결식 진행 시설'),
+('05', '장례용품', 5, '관, 수의 등 기본 장례 용품'),
+('06', '상주용품', 6, '상주 및 유가족 용품'),
+('07', '의례용품', 7, '제사 및 의식 용품'),
+('08', '인적서비스', 8, '장례 진행 인력'),
+('09', '장의자동차', 9, '운구 및 이동 차량');
+2. 중분류 테이블 (funeral_middle_categories)
+sqlCREATE TABLE funeral_middle_categories (
+    middle_category_code VARCHAR(4) PRIMARY KEY COMMENT '중분류 코드',
+    major_category_code VARCHAR(2) NOT NULL COMMENT '대분류 코드',
+    middle_category_name VARCHAR(100) NOT NULL COMMENT '중분류 명칭',
+    display_order INT NOT NULL COMMENT '표시 순서',
+    description TEXT COMMENT '설명',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (major_category_code) REFERENCES funeral_major_categories(major_category_code)
+) COMMENT='장례용품 중분류';
+
+-- 기본 데이터 예시
+INSERT INTO funeral_middle_categories (middle_category_code, major_category_code, middle_category_name, display_order) VALUES
+-- 01. 빈소
+('0101', '01', '빈소 사용료', 1),
+('0102', '01', '조문상 용품', 2),
+('0103', '01', '냉난방 시설', 3),
+
+-- 02. 안치실
+('0201', '02', '안치실 사용료', 1),
+('0202', '02', '냉장 보관', 2),
+('0203', '02', '방부 처리', 3),
+
+-- 03. 염습실
+('0301', '03', '염습실 사용료', 1),
+('0302', '03', '염습 서비스', 2),
+
+-- 04. 영결식장
+('0401', '04', '영결식장 사용료', 1),
+('0402', '04', '음향/영상 시설', 2),
+('0403', '04', '장식', 3),
+
+-- 05. 장례용품
+('0501', '05', '관', 1),
+('0502', '05', '수의', 2),
+('0503', '05', '입관 용품', 3),
+('0504', '05', '관보', 4),
+('0505', '05', '골함/항아리', 5),
+
+-- 06. 상주용품
+('0601', '06', '상복', 1),
+('0602', '06', '완장/두건', 2),
+('0603', '06', '기타 상주용품', 3),
+
+-- 07. 의례용품
+('0701', '07', '제단', 1),
+('0702', '07', '제수용품', 2),
+('0703', '07', '향/초', 3),
+('0704', '07', '명정/혼백', 4),
+('0705', '07', '사진/액자', 5),
+('0706', '07', '꽃', 6),
+
+-- 08. 인적서비스
+('0801', '08', '장례지도사', 1),
+('0802', '08', '염습사', 2),
+('0803', '08', '의전 도우미', 3),
+('0804', '08', '주차 도우미', 4),
+('0805', '08', '사회자/헌화 도우미', 5),
+
+-- 09. 장의자동차
+('0901', '09', '운구차', 1),
+('0902', '09', '리무진', 2),
+('0903', '09', '승합차/버스', 3);
+3. 소분류 테이블 (funeral_minor_categories)
+sqlCREATE TABLE funeral_minor_categories (
+    minor_category_code VARCHAR(6) PRIMARY KEY COMMENT '소분류 코드',
+    middle_category_code VARCHAR(4) NOT NULL COMMENT '중분류 코드',
+    major_category_code VARCHAR(2) NOT NULL COMMENT '대분류 코드',
+    minor_category_name VARCHAR(100) NOT NULL COMMENT '소분류 명칭',
+    display_order INT NOT NULL COMMENT '표시 순서',
+    description TEXT COMMENT '설명',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (middle_category_code) REFERENCES funeral_middle_categories(middle_category_code),
+    FOREIGN KEY (major_category_code) REFERENCES funeral_major_categories(major_category_code)
+) COMMENT='장례용품 소분류';
+
+-- 기본 데이터 예시
+INSERT INTO funeral_minor_categories (minor_category_code, middle_category_code, major_category_code, minor_category_name, display_order) VALUES
+-- 05. 장례용품 > 관
+('050101', '0501', '05', '소나무관', 1),
+('050102', '0501', '05', '오동나무관', 2),
+('050103', '0501', '05', '참나무관', 3),
+('050104', '0501', '05', 'MDF관', 4),
+('050105', '0501', '05', '동관', 5),
+
+-- 05. 장례용품 > 수의
+('050201', '0502', '05', '삼베 수의', 1),
+('050202', '0502', '05', '면 수의', 2),
+('050203', '0502', '05', '비단 수의', 3),
+
+-- 07. 의례용품 > 제단
+('070101', '0701', '07', '기본형 제단', 1),
+('070102', '0701', '07', '고급형 제단', 2),
+('070103', '0701', '07', '특급형 제단', 3),
+
+-- 07. 의례용품 > 꽃
+('070601', '0706', '07', '국화', 1),
+('070602', '0706', '07', '장미', 2),
+('070603', '0706', '07', '백합', 3),
+('070604', '0706', '07', '카네이션', 4),
+
+-- 09. 장의자동차 > 운구차
+('090101', '0901', '09', '특급 운구차', 1),
+('090102', '0901', '09', '고급 운구차', 2),
+('090103', '0901', '09', '일반 운구차', 3),
+
+-- 09. 장의자동차 > 승합차/버스
+('090301', '0903', '09', '15인승 승합차', 1),
+('090302', '0903', '09', '25인승 버스', 2),
+('090303', '0903', '09', '45인승 대형버스', 3);
+4. 단위 코드 테이블 (funeral_unit_codes)
+sqlCREATE TABLE funeral_unit_codes (
+    unit_code VARCHAR(10) PRIMARY KEY COMMENT '단위 코드',
+    unit_name VARCHAR(50) NOT NULL COMMENT '단위 명칭',
+    unit_type VARCHAR(20) NOT NULL COMMENT '단위 유형 (수량/거리/인원/일수/등급)',
+    description TEXT COMMENT '설명',
+    display_order INT NOT NULL COMMENT '표시 순서',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) COMMENT='단위 코드';
+
+INSERT INTO funeral_unit_codes (unit_code, unit_name, unit_type, description, display_order) VALUES
+-- 수량 단위
+('EA', '개', 'QUANTITY', '개별 단위', 1),
+('SET', '세트', 'QUANTITY', '묶음 단위', 2),
+('PIECE', '벌', 'QUANTITY', '의복 단위', 3),
+('BUNCH', '송이', 'QUANTITY', '꽃 단위', 4),
+('BOOK', '권', 'QUANTITY', '책자 단위', 5),
+('PAIR', '쌍', 'QUANTITY', '한 쌍', 6),
+
+-- 등급 단위
+('TYPE1', '1형', 'GRADE', '등급 1형', 10),
+('TYPE2', '2형', 'GRADE', '등급 2형', 11),
+('TYPE3', '3형', 'GRADE', '등급 3형', 12),
+('TYPE4', '4형', 'GRADE', '등급 4형', 13),
+('TYPE5', '5형', 'GRADE', '등급 5형', 14),
+
+-- 수의 칭수
+('CHING3', '3칭', 'GRADE', '수의 3칭', 20),
+('CHING5', '5칭', 'GRADE', '수의 5칭', 21),
+('CHING7', '7칭', 'GRADE', '수의 7칭', 22),
+('CHING9', '9칭', 'GRADE', '수의 9칭', 23),
+
+-- 인원 단위
+('PERSON', '명', 'PEOPLE', '인원 수', 30),
+('SEAT5', '5인승', 'PEOPLE', '차량 인원', 31),
+('SEAT7', '7인승', 'PEOPLE', '차량 인원', 32),
+('SEAT9', '9인승', 'PEOPLE', '차량 인원', 33),
+('SEAT15', '15인승', 'PEOPLE', '차량 인원', 34),
+('SEAT25', '25인승', 'PEOPLE', '차량 인원', 35),
+('SEAT45', '45인승', 'PEOPLE', '차량 인원', 36),
+
+-- 기간 단위
+('DAY', '일', 'DURATION', '일 단위', 40),
+('HOUR', '시간', 'DURATION', '시간 단위', 41),
+('CASE', '건', 'DURATION', '1회 서비스', 42),
+
+-- 거리 단위
+('KM', 'km', 'DISTANCE', '킬로미터', 50),
+('KM_BASE', '기본 km', 'DISTANCE', '기본 거리', 51),
+('KM_ADD', '추가 km', 'DISTANCE', '추가 거리', 52);
+5. 상품 마스터 테이블 (funeral_products)
+sqlCREATE TABLE funeral_products (
+    product_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '상품 ID',
+    product_code VARCHAR(20) UNIQUE NOT NULL COMMENT '상품 코드',
+    major_category_code VARCHAR(2) NOT NULL COMMENT '대분류 코드',
+    middle_category_code VARCHAR(4) NOT NULL COMMENT '중분류 코드',
+    minor_category_code VARCHAR(6) NOT NULL COMMENT '소분류 코드',
+    product_name VARCHAR(200) NOT NULL COMMENT '상품명',
+    specification TEXT COMMENT '규격/사양',
+    description TEXT COMMENT '서비스 내용/설명',
+    material VARCHAR(100) COMMENT '재질',
+    size VARCHAR(100) COMMENT '크기',
+    color VARCHAR(50) COMMENT '색상',
+    manufacturer VARCHAR(100) COMMENT '제조사/공급사',
+    country_of_origin VARCHAR(50) COMMENT '원산지',
+    
+    -- 기본 단위 (대표 단위)
+    default_unit_code VARCHAR(10) NOT NULL COMMENT '기본 단위 코드',
+    
+    -- 옵션
+    has_multiple_units BOOLEAN DEFAULT FALSE COMMENT '복수 단위 여부',
+    is_required BOOLEAN DEFAULT FALSE COMMENT '필수 품목 여부',
+    is_optional BOOLEAN DEFAULT TRUE COMMENT '선택 품목 여부',
+    is_package BOOLEAN DEFAULT FALSE COMMENT '패키지 여부',
+    
+    display_order INT COMMENT '표시 순서',
+    image_url VARCHAR(255) COMMENT '이미지 URL',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (major_category_code) REFERENCES funeral_major_categories(major_category_code),
+    FOREIGN KEY (middle_category_code) REFERENCES funeral_middle_categories(middle_category_code),
+    FOREIGN KEY (minor_category_code) REFERENCES funeral_minor_categories(minor_category_code),
+    FOREIGN KEY (default_unit_code) REFERENCES funeral_unit_codes(unit_code)
+) COMMENT='장례용품 상품 마스터';
+
+-- 인덱스
+CREATE INDEX idx_major_category ON funeral_products(major_category_code);
+CREATE INDEX idx_middle_category ON funeral_products(middle_category_code);
+CREATE INDEX idx_minor_category ON funeral_products(minor_category_code);
+CREATE INDEX idx_active ON funeral_products(is_active);
+6. 상품별 단위 가격 테이블 (funeral_product_unit_prices)
+sqlCREATE TABLE funeral_product_unit_prices (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+    product_id INT NOT NULL COMMENT '상품 ID',
+    unit_code VARCHAR(10) NOT NULL COMMENT '단위 코드',
+    unit_value DECIMAL(10,2) COMMENT '단위 값 (수량, 거리 등)',
+    standard_price DECIMAL(12,2) NOT NULL COMMENT '표준 단가',
+    
+    -- 추가 정보
+    min_quantity DECIMAL(10,2) DEFAULT 1 COMMENT '최소 수량/값',
+    max_quantity DECIMAL(10,2) COMMENT '최대 수량/값',
+    price_note TEXT COMMENT '가격 특이사항',
+    
+    display_order INT COMMENT '표시 순서',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '사용 여부',
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (product_id) REFERENCES funeral_products(product_id),
+    FOREIGN KEY (unit_code) REFERENCES funeral_unit_codes(unit_code),
+    UNIQUE KEY uk_product_unit (product_id, unit_code, unit_value)
+) COMMENT='상품별 단위 가격';
+
+-- 인덱스
+CREATE INDEX idx_product ON funeral_product_unit_prices(product_id);
+CREATE INDEX idx_unit ON funeral_product_unit_prices(unit_code);
+7. 장례식장별 상품 단위 가격 테이블 (funeral_home_product_prices)
+sqlCREATE TABLE funeral_home_product_prices (
+    id INT PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+    funeral_home_id INT NOT NULL COMMENT '장례식장 ID',
+    product_id INT NOT NULL COMMENT '상품 ID',
+    unit_code VARCHAR(10) NOT NULL COMMENT '단위 코드',
+    unit_value DECIMAL(10,2) COMMENT '단위 값',
+    
+    -- 가격 정보
+    sale_price DECIMAL(12,2) NOT NULL COMMENT '판매 단가',
+    discount_rate DECIMAL(5,2) COMMENT '할인율',
+    
+    -- 수량/범위 제한
+    min_quantity DECIMAL(10,2) DEFAULT 1 COMMENT '최소 수량',
+    max_quantity DECIMAL(10,2) COMMENT '최대 수량',
+    
+    -- 추가 정보
+    is_available BOOLEAN DEFAULT TRUE COMMENT '제공 여부',
+    is_included_in_package BOOLEAN DEFAULT FALSE COMMENT '패키지 포함 여부',
+    note TEXT COMMENT '특이사항',
+    
+    display_order INT COMMENT '표시 순서',
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (funeral_home_id) REFERENCES funeral_homes(id),
+    FOREIGN KEY (product_id) REFERENCES funeral_products(product_id),
+    FOREIGN KEY (unit_code) REFERENCES funeral_unit_codes(unit_code),
+    UNIQUE KEY uk_home_product_unit (funeral_home_id, product_id, unit_code, unit_value)
+) COMMENT='장례식장별 상품 단위 가격';
+
+-- 인덱스
+CREATE INDEX idx_funeral_home ON funeral_home_product_prices(funeral_home_id);
+CREATE INDEX idx_product ON funeral_home_product_prices(product_id);
+CREATE INDEX idx_available ON funeral_home_product_prices(is_available);
+샘플 데이터
+관(棺) 상품 예시
+sql-- 1. 상품 등록 (소나무관)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, material, size, default_unit_code, has_multiple_units
+) VALUES (
+    'P050101001', '05', '0501', '050101',
+    '국내산 소나무관', '국내산 소나무 원목', 
+    '전통 방식으로 제작된 국내산 소나무 관. 은은한 송진 향과 우수한 내구성',
+    '소나무', '길이 190cm x 폭 60cm x 높이 50cm', 'EA', FALSE
+);
+
+-- 2. 단위별 가격 (개당)
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price) VALUES
+(1, 'EA', 1, 800000.00);
+
+-- 장례식장별 가격
+INSERT INTO funeral_home_product_prices (funeral_home_id, product_id, unit_code, unit_value, sale_price) VALUES
+(1, 1, 'EA', 1, 850000.00),
+(2, 1, 'EA', 1, 780000.00);
+수의 상품 예시 (칭수별 가격)
+sql-- 1. 상품 등록 (삼베 수의)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, material, default_unit_code, has_multiple_units
+) VALUES (
+    'P050201001', '05', '0502', '050201',
+    '국내산 삼베 수의', '100% 국내산 삼베', 
+    '전통 방식으로 제작된 삼베 수의. 칭수별 구성품 상이',
+    '삼베', 'CHING5', TRUE
+);
+
+-- 2. 칭수별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price, price_note) VALUES
+(2, 'CHING3', 3, 350000.00, '저고리, 바지, 이불'),
+(2, 'CHING5', 5, 450000.00, '3칭 + 두루마기, 요'),
+(2, 'CHING7', 7, 650000.00, '5칭 + 버선, 행전'),
+(2, 'CHING9', 9, 850000.00, '7칭 + 대님, 천금');
+
+-- 장례식장별 가격
+INSERT INTO funeral_home_product_prices (funeral_home_id, product_id, unit_code, unit_value, sale_price) VALUES
+(1, 2, 'CHING3', 3, 380000.00),
+(1, 2, 'CHING5', 5, 480000.00),
+(1, 2, 'CHING7', 7, 680000.00);
+제단 상품 예시 (형별 가격)
+sql-- 1. 상품 등록 (제단)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, default_unit_code, has_multiple_units
+) VALUES (
+    'P070101001', '07', '0701', '070101',
+    '기본 제단', '제단 + 제수용품', 
+    '영결식 제단 구성. 형별로 규모와 제수 종류가 다름',
+    'TYPE1', TRUE
+);
+
+-- 2. 형별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price, price_note) VALUES
+(3, 'TYPE1', 1, 150000.00, '소형 제단, 기본 제수 5종'),
+(3, 'TYPE2', 2, 250000.00, '중형 제단, 기본 제수 8종'),
+(3, 'TYPE3', 3, 400000.00, '대형 제단, 기본 제수 12종'),
+(3, 'TYPE4', 4, 600000.00, '특대형 제단, 고급 제수 15종');
+꽃 상품 예시 (송이별 가격)
+sql-- 1. 상품 등록 (국화)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, default_unit_code, has_multiple_units
+) VALUES (
+    'P070601001', '07', '0706', '070601',
+    '백국화', '국내산 백색 국화', 
+    '영정 및 빈소 장식용 백색 국화',
+    'BUNCH', TRUE
+);
+
+-- 2. 송이별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price) VALUES
+(4, 'BUNCH', 1, 5000.00),
+(4, 'BUNCH', 10, 45000.00),
+(4, 'BUNCH', 50, 200000.00),
+(4, 'BUNCH', 100, 380000.00);
+상복 상품 예시 (벌수별 가격)
+sql-- 1. 상품 등록 (상복)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, material, default_unit_code, has_multiple_units
+) VALUES (
+    'P060101001', '06', '0601', '060101',
+    '전통 상복', '삼베 상복', 
+    '전통 삼베 상복 세트. 두루마기 + 두건/치마',
+    '삼베', 'PIECE', TRUE
+);
+
+-- 2. 벌수별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price) VALUES
+(5, 'PIECE', 1, 80000.00),
+(5, 'PIECE', 3, 210000.00),
+(5, 'PIECE', 5, 320000.00),
+(5, 'PIECE', 10, 600000.00);
+인적 서비스 예시 (명수별 가격)
+sql-- 1. 상품 등록 (의전 도우미)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, default_unit_code, has_multiple_units
+) VALUES (
+    'P080301001', '08', '0803', '080301',
+    '의전 도우미', '1일 기준', 
+    '조문객 안내, 음식 서빙, 빈소 정리 등 의전 업무 보조',
+    'PERSON', TRUE
+);
+
+-- 2. 인원별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price) VALUES
+(6, 'PERSON', 1, 120000.00),
+(6, 'PERSON', 2, 230000.00),
+(6, 'PERSON', 3, 330000.00);
+장의자동차 예시 (거리별 가격)
+sql-- 1. 상품 등록 (운구차)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, default_unit_code, has_multiple_units
+) VALUES (
+    'P090101001', '09', '0901', '090101',
+    '특급 운구차', '링컨/제네시스 등 최고급 차량', 
+    '최고급 운구 차량. 영구 안치 및 꽃 장식 포함. 기사 1명',
+    'KM_BASE', TRUE
+);
+
+-- 2. 거리별 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price, price_note) VALUES
+(7, 'KM_BASE', 100, 800000.00, '기본 100km 포함'),
+(7, 'KM_ADD', 1, 5000.00, '추가 1km당');
+
+-- 장례식장별 가격
+INSERT INTO funeral_home_product_prices (funeral_home_id, product_id, unit_code, unit_value, sale_price, note) VALUES
+(1, 7, 'KM_BASE', 100, 850000.00, '기본 100km'),
+(1, 7, 'KM_ADD', 1, 5500.00, '추가 km당');
+버스 예시 (인승별 가격)
+sql-- 1. 상품 등록 (버스)
+INSERT INTO funeral_products (
+    product_code, major_category_code, middle_category_code, minor_category_code,
+    product_name, specification, description, default_unit_code, has_multiple_units
+) VALUES (
+    'P090301001', '09', '0903', '090301',
+    '조문객 버스', '조문객 이동용 버스', 
+    '조문객 이동용 버스. 기사 포함. 거리에 따라 추가 요금 발생',
+    'SEAT25', TRUE
+);
+
+-- 2. 인승별 기본 가격
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price, price_note) VALUES
+(8, 'SEAT15', 15, 350000.00, '15인승 기본 100km'),
+(8, 'SEAT25', 25, 450000.00, '25인승 기본 100km'),
+(8, 'SEAT45', 45, 550000.00, '45인승 기본 100km');
+
+-- 추가 거리 요금
+INSERT INTO funeral_product_unit_prices (product_id, unit_code, unit_value, standard_price, price_note) VALUES
+(8, 'KM_ADD', 1, 3000.00, '추가 km당 (모든 인승 동일)');
+조회 뷰 (View)
+sql-- 전체 상품 정보 통합 뷰
+CREATE VIEW v_funeral_products_full AS
+SELECT 
+    p.product_id,
+    p.product_code,
+    p.product_name,
+    
+    -- 카테고리 정보
+    maj.major_category_code,
+    maj.major_category_name,
+    mid.middle_category_code,
+    mid.middle_category_name,
+    min.minor_category_code,
+    min.minor_category_name,
+    
+    -- 상품 정보
+    p.specification,
+    p.description,
+    p.material,
+    p.size,
+    p.color,
+    
+    -- 기본 단위
+    p.default_unit_code,
+    uc.unit_name AS default_unit_name,
+    p.has_multiple_units,
+    
+    -- 기타
+    p.is_required,
+    p.is_optional,
+    p.is_active
+FROM funeral_products p
+INNER JOIN funeral_major_categories maj ON p.major_category_code = maj.major_category_code
+INNER JOIN funeral_middle_categories mid ON p.middle_category_code = mid.middle_category_code
+INNER JOIN funeral_minor_categories min ON p.minor_category_code = min.minor_category_code
+INNER JOIN funeral_unit_codes uc ON p.default_unit_code = uc.unit_code
+WHERE p.is_active = TRUE;
+
+-- 상품별 단위 가격 뷰
+CREATE VIEW v_product_unit_prices AS
+SELECT 
+    p.product_id,
+    p.product_code,
+    p.product_name,
+    maj.major_category_name,
+    mid.middle_category_name,
+    min.minor_category_name,
+    
+    -- 단위별 가격
+    pup.id AS price_id,
+    pup.unit_code,
+    uc.unit_name,
+    uc.unit_type,
+    pup.unit_value,
+    pup.standard_price,
+    pup.min_quantity,
+    pup.max_quantity,
+    pup.price_note
+FROM funeral_product_unit_prices pup
+INNER JOIN funeral_products p ON pup.product_id = p.product_id
+INNER JOIN funeral_major_categories maj ON p.major_category_code = maj.major_category_code
+INNER JOIN funeral_middle_categories mid ON p.middle_category_code = mid.middle_category_code
+INNER JOIN funeral_minor_categories min ON p.minor_category_code = min.minor_category_code
+INNER JOIN funeral_unit_codes uc ON pup.unit_code = uc.unit_code
+WHERE pup.is_active = TRUE
+ORDER BY p.product_code, uc.display_order, pup.unit_value;
+
+-- 장례식장별 상품 가격 뷰
+CREATE VIEW v_funeral_home_product_prices AS
+SELECT 
+    fh.id AS funeral_home_id,
+    fh.name AS funeral_home_name,
+    
+    p.product_id,
+    p.product_code,
+    p.product_name,
+    
+    maj.major_category_name,
+    mid.middle_category_name,
+    min.minor_category_name,
+    
+    -- 단위 정보
+    fhpp.unit_code,
+    uc.unit_name,
+    uc.unit_type,
+    fhpp.unit_value,
+    
+    -- 가격 정보
+    pup.standard_price,
+    fhpp.sale_price,
+    fhpp.discount_rate,
+    ROUND((pup.standard_price - fhpp.sale_price) / pup.standard_price * 100, 2) AS actual_discount_rate,
+    
+    -- 수량 제한
+    fhpp.min_quantity,
+    fhpp.max_quantity,
+    
+    -- 기타
+    fhpp.is_available,
+    fhpp.is_included_in_package,
+    fhpp.note
+FROM funeral_home_product_prices fhpp
+INNER JOIN funeral_homes fh ON fhpp.funeral_home_id = fh.id
+INNER JOIN funeral_products p ON fhpp.product_id = p.product_id
+INNER JOIN funeral_major_categories maj ON p.major_category_code = maj.major_category_code
+INNER JOIN funeral_middle_categories mid ON p.middle_category_code = mid.middle_category_code
+INNER JOIN funeral_minor_categories min ON p.minor_category_code = min.minor_category_code
+INNER JOIN funeral_unit_codes uc ON fhpp.unit_code = uc.unit_code
+LEFT JOIN funeral_product_unit_prices pup ON fhpp.product_id = pup.product_id 
+    AND fhpp.unit_code = pup.unit_code 
+    AND (fhpp.unit_value = pup.unit_value OR pup.unit_value IS NULL)
+WHERE fhpp.is_available = TRUE
+ORDER BY fh.name, maj.display_order, mid.display_order, min.display_order, p.product_code;
+활용 쿼리 예시
+sql-- 1. 특정 장례식장의 수의 칭수별 가격 조회
+SELECT 
+    funeral_home_name,
+    product_name,
+    unit_name,
+    unit_value,
+    standard_price,
+    sale_price,
+    actual_discount_rate
+FROM v_funeral_home_product_prices
+WHERE funeral_home_id = 1
+  AND middle_category_name = '수의'
+ORDER BY unit_value;
+
+-- 2. 운구차 거리별 가격 비교
+SELECT 
+    funeral_home_name,
+    product_name,
+    unit_name,
+    unit_value,
+    sale_price
+FROM v_funeral_home_product_prices
+WHERE minor_category_name LIKE '%운구차%'
+ORDER BY funeral_home_name, unit_code, unit_value;
+
+-- 3. 제단 형별 가격 조회
+SELECT 
+    product_name,
+    unit_name,
+    standard_price,
+    price_note
+FROM v_product_unit_prices
+WHERE middle_category_name = '제단'
+ORDER BY unit_value;
+
+-- 4. 꽃 송이별 가격 조회
+SELECT 
+    product_name,
+    CONCAT(unit_value, unit_name) AS quantity,
+    standard_price,
+    ROUND(standard_price / unit_value, 0) AS price_per_unit
+FROM v_product_unit_prices
+WHERE minor_category_name = '국화'
+  AND unit_code = 'BUNCH'
+ORDER BY unit_value;
+
+-- 5. 상복 벌수별 가격 조회
+SELECT 
+    product_name,
+    CONCAT(unit_value, unit_name) AS quantity,
+    standard_price,
+    ROUND(standard_price / unit_value, 0) AS price_per_piece
+FROM v_product_unit_prices
+WHERE middle_category_name = '상복'
+  AND unit_code = 'PIECE'
+ORDER BY unit_value;
+
+-- 6. 버스 인승별 + 거리별 가격 조회
+SELECT 
+    funeral_home_name,
+    product_name,
+    unit_name,
+    unit_value,
+    sale_price,
+    note
+FROM v_funeral_home_product_prices
+WHERE product_name LIKE '%버스%'
+ORDER BY funeral_home_name, unit_type, unit_value;
+이 구조로 하면 다양한 단위(벌, 개, 송이, 형, 명, km, 인승 등)와 단위별 가격을 유연하게 관리할 수 있습니다. 추가로 필요한 부분이 있으시면 말씀해주세요!

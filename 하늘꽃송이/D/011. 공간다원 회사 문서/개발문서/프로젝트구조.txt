@@ -1,0 +1,104 @@
+현재 프로젝트 구조
+메뉴 (Navigation)
+컴포넌트: Header (src/components/Header.tsx)
+내부 네비게이션: nav (.nav 클래스)
+용어: "Header" 또는 "Navigation" 또는 "Nav"
+메인 페이지
+컴포넌트: FamilyPage (src/pages/FamilyPage.tsx)
+라우트: / 또는 /family
+용어: "FamilyPage" 또는 "HomePage" 또는 "LandingPage"
+대화 시 권장 용어
+메뉴 → "Header" 또는 "Navigation"
+메인 페이지 → "FamilyPage" 또는 "메인 페이지"
+예시:
+"Header의 배경색을 변경해줘"
+"FamilyPage의 레이아웃을 수정해줘"
+"Navigation 메뉴 항목을 추가해줘"
+이렇게 사용하면 코드와 일치해 대화가 명확해집니다.
+
+버튼이 위치한 영역은 React에서 보통 다음과 같이 부릅니다:
+섹션(section): <section> 또는 className="section"
+영역(area): className="area" 또는 className="section-area"
+컨테이너(container): className="container"
+카드 섹션(card section): className="action-cards-section" (이 경우)
+이 경우 코드에서는 action-cards-section 클래스를 사용했습니다.
+배포 결과:
+빌드 성공
+배포 완료: charnelapp_be/WebContent 폴더로 복사됨
+다음 단계:
+백엔드 서버를 재시작하면 변경사항이 반영됩니다. "하늘 꽃송이" 메인 페이지에서 "주요 서비스" 섹션과 3개의 버튼이 제거되었습니다.
+
+Navigation에서 "상조회사 전용" 메뉴에서
+sub 메뉴 "장례비용 문의 관리, 장례비용 견적 결과, 상품 등록, 상조회사 상세,
+         회사 연혁, 서비스 지역, 직원관리"중에 한개를 선택하면
+새로운 페이지로 이동되면서 선택된 메뉴의 화면 출력이 되지 않는다.
+Navigation의 "상조회사 전용" 메뉴의 sub메뉴 선택시 연동된 화면은
+"상조회사 전용" 페이지의 왼쪽 메뉴와 동일한 화면을 연동해줘
+
+"고객감동후기" compnent를 수정하려고해
+"고객감동후기" compnent는 FamilyPage의 오른쪽 정렬을하고
+가로의 크기를 현재 크기의 3분의1 크기로 줄이고
+세로의 크기를 현재 크기의 5배를 크게해줘.
+"고객감동후기" compnent 크기를 안드로이드폰 형태로 출력이
+되었으면 좋겠어
+
+
+"고객감동후기" compnent 앞에
+"회사순위" compnent 추가하고 "회사순위" compnent는 아래와 같이 만들어줘
+1. "회사순위" compnent안을 3개로 분리한다.
+2. 평균 평점 높은 순 (추천)
+   평균 평점이 높은 회사 우선 표시
+   고객 만족도가 높은 회사 강조
+   예: 평균 4.8점, 리뷰 50개
+3. 리뷰 수 많은 순 (인기)
+   리뷰가 많은 회사 우선 표시
+   많은 고객이 선택한 회사 강조
+   예: 리뷰 100개, 평균 4.5점
+4. 최근 리뷰 활발한 순 (신뢰)
+   최근 리뷰가 많은 회사 우선 표시
+   최근 활동이 활발한 회사 강조
+   예: 최근 30일 리뷰 20개, 평균 4.6점
+2,3,4 조회시 순위,회사명,평점, 평점을 별표로 변환해서 색칠해서 보여준다
+
+
+용어: "Header" 또는 "Navigation" 또는 "Nav"
+메인 페이지
+컴포넌트: FamilyPage (src/pages/FamilyPage.tsx)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+사용자 유형 (MEMBER_TYPE)은 다음과 같은데
+CUST → "유가족", CUSTDERI → "유가족대리인", BIZCOMP → "상조회사"
+"고객감동후기"의 조회 목록에는 FAMILY로 출력되는데
+어는 테이블의 값을 출력한것인가?
+
+"고객감동후기"는 CUST → "유가족", CUSTDERI → "유가족대리인"이
+BIZCOMP → "상조회사"에게 
+BIZCOMP → "상조회사"가 CUST → "유가족", CUSTDERI → "유가족대리인"에게
+감사의글 또는 아쉬웠던 글을 남기는 기능으로
+반드시 CUST → "유가족", CUSTDERI → "유가족대리인"과
+BIZCOMP → "상조회사"가 계약하고 "장례식정상종료"된 관계일때만
+고객감동후기를 남기고, 감동후기글에 댓글을 작성할 수 있다.
+
+tb_funeral_inquiry 테이블의 INQUIRY_ID, COMPANY_ID 컬럼 값과
+tb_funeral_inquiry_quote 테이블의 INQUIRY_ID, COMPANY_ID 컬럼 값이 동일하고
+tb_funeral_inquiry 테이블의 FUNERAL_STATUS 컬럼이 "04"이면
+tb_funeral_inquiry_quote 테이블의 INQUIRY_ID, COMPANY_ID에 대한 "고객감동후기" 또는 "댓글"을 
+작성할 수 있고 
+tb_funeral_inquiry_quote 테이블의 QUOTE_STATUS 컬럼이 "TERMINATION"인 정보는
+tb_funeral_inquiry 테이블의 INQUIRY_ID, COMPANY_ID에 대한 "고객감동후기" 또는 "댓글"을 작성할 수 있다.
+단. 사용자 유형 (MEMBER_TYPE)이 BIZCOMP → "상조회사"일때는 평가 점수를 넣을 수 없다.
+
+

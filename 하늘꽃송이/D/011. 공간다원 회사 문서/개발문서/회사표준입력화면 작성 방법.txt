@@ -1,0 +1,42 @@
+"상조회사 표준 계약서 입력" 화면에서
+
+1. 빈소 입력을 다음과 같이 수정해줘.
+   
+   빈소 등급 대분류 "01", 
+   빈소 등급 중분류 '0101', 
+   빈소 등급 소분류 '010101, 010102,010103'
+   빈소 등급 명칭 tb_funeral_minor_categories테이블의 MINOR_CATEGORY_NAME 컬럼을 목록으로 보여주고
+   저장시 
+    TB_STANDARD_CONTRACT의 WAKE_ROOM_CAT_L1 컬럼에 "빈소 등급 대분류"값인 '01'을 조립
+    TB_STANDARD_CONTRACT의 WAKE_ROOM_CAT_L2 VARCHAR(4) COMMENT '빈소 중분류 코드 - 장례식장 임대료 중분류 코드, VARCHAR(4)',
+    TB_STANDARD_CONTRACT의 WAKE_ROOM_CAT_L3 VARCHAR(6) COMMENT '빈소 소분류 코드 - 장례식장 임대료 소분류 코드, VARCHAR(6)',
+	
+    WAKE_ROOM_UNIT_CODE VARCHAR(10) COMMENT '빈소 단위 코드 - 빈소 임대료 단위 코드 (일, 시간, 회 등), VARCHAR(10)',
+    WAKE_ROOM_UNIT_AMOUNT DECIMAL(10,2) COMMENT '빈소 단위 금액 - 빈소 임대료 단위당 금액, DECIMAL(10,2)',
+   
+   
+   CREATE TABLE haneulblossom.TB_STANDARD_CONTRACT (
+    -- 기본 식별자
+    STANDARD_CONTRACT_ID VARCHAR(36) NOT NULL COMMENT '표준계약서ID - 표준 계약서의 고유 식별자 (UUID 형식), PK',
+    
+    -- 회사 정보
+    PARENT_COMPANY_ID VARCHAR(20) NOT NULL COMMENT '본점 회사ID - TB_FUNERAL_COMPANY 테이블의 PARENT_COMPANY_ID 참조, 본점의 COMPANY_ID',
+    
+    -- 표준계약서 기본 정보
+    CONTRACT_TYPE VARCHAR(50) COMMENT '표준계약서 유형 - 일반형, 고급형, VIP 등 계약서 유형 구분',
+    CONTRACT_TYPE_DESC VARCHAR(500) COMMENT '표준계약서 유형 설명 - 계약서 유형에 대한 상세 설명, 최대 500자',
+    
+    -- ① 장례식장 임대료
+    -- 빈소
+    WAKE_ROOM_CAT_L1 VARCHAR(2) COMMENT '빈소 대분류 코드 - 장례식장 임대료 대분류 코드, VARCHAR(2)',
+    WAKE_ROOM_CAT_L2 VARCHAR(4) COMMENT '빈소 중분류 코드 - 장례식장 임대료 중분류 코드, VARCHAR(4)',
+    WAKE_ROOM_CAT_L3 VARCHAR(6) COMMENT '빈소 소분류 코드 - 장례식장 임대료 소분류 코드, VARCHAR(6)',
+    WAKE_ROOM_UNIT_CODE VARCHAR(10) COMMENT '빈소 단위 코드 - 빈소 임대료 단위 코드 (일, 시간, 회 등), VARCHAR(10)',
+    WAKE_ROOM_UNIT_AMOUNT DECIMAL(10,2) COMMENT '빈소 단위 금액 - 빈소 임대료 단위당 금액, DECIMAL(10,2)',
+    
+    -- 빈소 사용방법
+    WAKE_ROOM_USAGE_CAT_L1 VARCHAR(2) COMMENT '빈소 사용방법 대분류 코드 - 빈소 사용방법 대분류 코드, VARCHAR(2)',
+    WAKE_ROOM_USAGE_CAT_L2 VARCHAR(4) COMMENT '빈소 사용방법 중분류 코드 - 빈소 사용방법 중분류 코드, VARCHAR(4)',
+    WAKE_ROOM_USAGE_CAT_L3 VARCHAR(6) COMMENT '빈소 사용방법 소분류 코드 - 빈소 사용방법 소분류 코드, VARCHAR(6)',
+    WAKE_ROOM_USAGE_UNIT_CODE VARCHAR(10) COMMENT '빈소 사용방법 단위 코드 - 빈소 사용방법 단위 코드, VARCHAR(10)',
+    WAKE_ROOM_USAGE_UNIT_AMOUNT DECIMAL(10,2) COMMENT '빈소 사용방법 단위 금액 - 빈소 사용방법 단위당 금액, DECIMAL(10,2)',
